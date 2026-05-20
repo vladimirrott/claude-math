@@ -23,22 +23,32 @@ After:   The qualifying cohort is Q = { (s,r) ∈ T : n_{s,r} ≥ 18 ∧ p⁰_{s
 ### via npm (recommended)
 
 ```bash
-npx claude-math install
-```
-
-Symlinks the package into `~/.claude/plugins/local/claude-math`, registers it
-in `installed_plugins.json`, and enables it in `settings.json`. Restart Claude
-Code; the skill loads. Uninstall with `npx claude-math uninstall`. Inspect
-state with `npx claude-math status`.
-
-Or globally:
-
-```bash
 npm install -g claude-math
 claude-math install
 ```
 
-### manual
+Symlinks the package into `~/.claude/plugins/local/claude-math`, registers it
+in `installed_plugins.json`, and enables it in `settings.json` (atomically;
+both files get a `.claude-math.bak` backup on first touch). Restart Claude
+Code and the skill loads.
+
+`npx claude-math install` also works — the CLI auto-detects an npx-cache
+install path and **copies** rather than symlinks (since the cache directory
+is ephemeral). Prefer the global install if you want updates via
+`npm update -g claude-math` to propagate automatically.
+
+Other commands:
+
+```bash
+claude-math status        # report target, validity, settings state, next-install mode
+claude-math uninstall     # remove symlink/dir, deregister, disable
+claude-math --help        # full flag list, env overrides
+```
+
+Flags: `--force` overrides safety checks (foreign symlinks, non-plugin
+directories at the target). `--copy` forces a real copy instead of symlink.
+
+### Manual install
 
 ```bash
 git clone https://github.com/entropia-ai/claude-math \
@@ -47,11 +57,27 @@ git clone https://github.com/entropia-ai/claude-math \
 
 Then add `"claude-math@local": true` under `enabledPlugins` in
 `~/.claude/settings.json` and a matching entry in
-`~/.claude/plugins/installed_plugins.json`. The CLI does both for you.
+`~/.claude/plugins/installed_plugins.json`. The CLI does both — running it
+once is the easiest path.
 
-### via the official plugin manager
+### Via Claude Code's plugin marketplace
 
-`/plugin install claude-math` once a marketplace listing exists.
+`/plugin install claude-math` once a marketplace listing exists. Until then,
+the npm path above is the supported install method.
+
+### Hacking on this repo
+
+Working from a clone (before or after publish):
+
+```bash
+git clone https://github.com/entropia-ai/claude-math && cd claude-math
+node bin/claude-math.js install     # uses the cloned directory directly
+node --test test/                   # run the test suite
+```
+
+`CLAUDE_CONFIG_DIR=/tmp/somewhere claude-math install` lets you test against
+a sandbox without touching your real `~/.claude` state — useful for
+contributing.
 
 The `math-unicode` skill auto-triggers any time Claude writes or explains math.
 No configuration required.

@@ -1,8 +1,21 @@
 #!/usr/bin/env node
 // claude-math — install/uninstall the plugin into Claude Code's local plugin dir.
 
-import { existsSync, lstatSync, mkdirSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import {
+  copyFileSync,
+  cpSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  readlinkSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
@@ -15,14 +28,22 @@ const PLUGIN_ID = `${PLUGIN_NAME}@local`;
 const CLAUDE_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude");
 const PLUGINS_DIR = join(CLAUDE_DIR, "plugins");
 const LOCAL_DIR = join(PLUGINS_DIR, "local");
-const TARGET_LINK = join(LOCAL_DIR, PLUGIN_NAME);
+const TARGET = join(LOCAL_DIR, PLUGIN_NAME);
 const SETTINGS = join(CLAUDE_DIR, "settings.json");
 const INSTALLED = join(PLUGINS_DIR, "installed_plugins.json");
 
 const pkg = JSON.parse(readFileSync(join(PLUGIN_ROOT, "package.json"), "utf8"));
 
+const args = process.argv.slice(2);
+const flags = new Set(args.filter((a) => a.startsWith("-")));
+const cmd = args.find((a) => !a.startsWith("-"));
+const FORCE = flags.has("--force") || flags.has("-f");
+const FORCE_COPY = flags.has("--copy");
+
 function log(msg) { console.log(`[claude-math] ${msg}`); }
 function die(msg) { console.error(`[claude-math] ${msg}`); process.exit(1); }
+
+function lstatSafe(p) { try { return lstatSync(p); } catch { return null; } }
 
 function readJson(path, fallback) {
   if (!existsSync(path)) return fallback;
@@ -30,116 +51,219 @@ function readJson(path, fallback) {
   catch (e) { die(`could not parse ${path}: ${e.message}`); }
 }
 
-function writeJson(path, obj) {
+function writeJsonAtomic(path, obj) {
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(obj, null, 2) + "\n");
+  const tmp = `${path}.tmp-${process.pid}`;
+  writeFileSync(tmp, JSON.stringify(obj, null, 2) + "\n");
+  renameSync(tmp, path);
 }
 
-function ensureSymlink() {
-  mkdirSync(LOCAL_DIR, { recursive: true });
-  if (existsSync(TARGET_LINK) || lstatSyncSafe(TARGET_LINK)) {
-    const stat = lstatSync(TARGET_LINK);
-    if (stat.isSymbolicLink()) {
-      unlinkSync(TARGET_LINK);
-    } else {
-      die(`${TARGET_LINK} exists and is not a symlink — refusing to overwrite.`);
-    }
+function backupOnce(path) {
+  const bak = `${path}.claude-math.bak`;
+  if (existsSync(path) && !existsSync(bak)) {
+    copyFileSync(path, bak);
+    log(`backed up ${path} → ${bak}`);
   }
-  symlinkSync(PLUGIN_ROOT, TARGET_LINK, "dir");
-  log(`linked ${PLUGIN_ROOT} → ${TARGET_LINK}`);
 }
 
-function lstatSyncSafe(p) {
-  try { return lstatSync(p); } catch { return null; }
+function isEphemeralPath(p) {
+  return /[\\/](?:_npx|_npm-cache)[\\/]/.test(p);
+}
+
+function looksLikeOurPlugin(path) {
+  return existsSync(join(path, ".claude-plugin", "plugin.json"))
+      && existsSync(join(path, "skills", "math-unicode", "SKILL.md"));
+}
+
+function chooseMode() {
+  if (FORCE_COPY) return "copy";
+  if (isEphemeralPath(PLUGIN_ROOT)) return "copy";
+  if (process.platform === "win32") return "junction";
+  return "symlink";
+}
+
+function clearTarget() {
+  const stat = lstatSafe(TARGET);
+  if (!stat) return;
+
+  if (stat.isSymbolicLink()) {
+    let current = "";
+    try { current = readlinkSync(TARGET); } catch {}
+    if (current === PLUGIN_ROOT || FORCE) {
+      unlinkSync(TARGET);
+      return;
+    }
+    die(`${TARGET} is a symlink to ${current}, not ${PLUGIN_ROOT}. Re-run with --force to overwrite.`);
+  }
+
+  if (stat.isDirectory()) {
+    if (!looksLikeOurPlugin(TARGET) && !FORCE) {
+      die(`${TARGET} is a directory but does not look like a claude-math install. Inspect manually, then re-run with --force.`);
+    }
+    rmSync(TARGET, { recursive: true, force: true });
+    return;
+  }
+
+  die(`${TARGET} exists and is neither symlink nor directory. Refusing to touch.`);
+}
+
+function placePlugin(mode) {
+  mkdirSync(LOCAL_DIR, { recursive: true });
+  if (mode === "copy") {
+    cpSync(PLUGIN_ROOT, TARGET, {
+      recursive: true,
+      filter: (src) => {
+        const rel = relative(PLUGIN_ROOT, src);
+        if (!rel) return true;
+        const top = rel.split(/[\\/]/, 1)[0];
+        return !["node_modules", ".git", "test", "tests"].includes(top);
+      },
+    });
+    log(`copied ${PLUGIN_ROOT} → ${TARGET}`);
+    return;
+  }
+  const linkType = mode === "junction" ? "junction" : "dir";
+  symlinkSync(PLUGIN_ROOT, TARGET, linkType);
+  log(`linked ${PLUGIN_ROOT} → ${TARGET} (${mode})`);
 }
 
 function registerInstalled() {
+  backupOnce(INSTALLED);
   const data = readJson(INSTALLED, { version: 2, plugins: {} });
   if (!data.plugins) data.plugins = {};
   const now = new Date().toISOString();
+  const prev = data.plugins[PLUGIN_ID]?.[0];
   data.plugins[PLUGIN_ID] = [{
     scope: "user",
-    installPath: TARGET_LINK,
+    installPath: TARGET,
     version: pkg.version,
-    installedAt: data.plugins[PLUGIN_ID]?.[0]?.installedAt ?? now,
+    installedAt: prev?.installedAt ?? now,
     lastUpdated: now,
   }];
-  writeJson(INSTALLED, data);
-  log(`registered ${PLUGIN_ID} in ${INSTALLED}`);
+  writeJsonAtomic(INSTALLED, data);
+  log(`registered ${PLUGIN_ID}`);
 }
 
 function enableInSettings() {
+  backupOnce(SETTINGS);
   const data = readJson(SETTINGS, {});
   if (!data.enabledPlugins) data.enabledPlugins = {};
   data.enabledPlugins[PLUGIN_ID] = true;
-  writeJson(SETTINGS, data);
-  log(`enabled ${PLUGIN_ID} in ${SETTINGS}`);
+  writeJsonAtomic(SETTINGS, data);
+  log(`enabled ${PLUGIN_ID}`);
+}
+
+function removeTarget() {
+  const stat = lstatSafe(TARGET);
+  if (!stat) return;
+  if (stat.isSymbolicLink()) {
+    unlinkSync(TARGET);
+    log(`removed symlink ${TARGET}`);
+    return;
+  }
+  if (stat.isDirectory() && (looksLikeOurPlugin(TARGET) || FORCE)) {
+    rmSync(TARGET, { recursive: true, force: true });
+    log(`removed directory ${TARGET}`);
+    return;
+  }
+  log(`${TARGET} exists but is not our plugin — leaving alone (use --force to remove anyway)`);
 }
 
 function unregister() {
-  if (existsSync(TARGET_LINK) && lstatSync(TARGET_LINK).isSymbolicLink()) {
-    unlinkSync(TARGET_LINK);
-    log(`removed symlink ${TARGET_LINK}`);
-  }
   const installed = readJson(INSTALLED, null);
   if (installed?.plugins?.[PLUGIN_ID]) {
     delete installed.plugins[PLUGIN_ID];
-    writeJson(INSTALLED, installed);
+    writeJsonAtomic(INSTALLED, installed);
     log(`unregistered ${PLUGIN_ID}`);
   }
   const settings = readJson(SETTINGS, null);
   if (settings?.enabledPlugins?.[PLUGIN_ID] !== undefined) {
     delete settings.enabledPlugins[PLUGIN_ID];
-    writeJson(SETTINGS, settings);
+    writeJsonAtomic(SETTINGS, settings);
     log(`disabled ${PLUGIN_ID}`);
   }
 }
 
 function install() {
-  ensureSymlink();
+  const mode = chooseMode();
+  clearTarget();
+  placePlugin(mode);
   registerInstalled();
   enableInSettings();
   log("done. Restart Claude Code to load the skill.");
 }
 
 function uninstall() {
+  removeTarget();
   unregister();
   log("done. Restart Claude Code to drop the skill.");
+}
+
+function status() {
+  const stat = lstatSafe(TARGET);
+  const kind = !stat ? "missing"
+    : stat.isSymbolicLink() ? "symlink"
+    : stat.isDirectory() ? "directory"
+    : "other";
+  const installed = !!readJson(INSTALLED, { plugins: {} }).plugins?.[PLUGIN_ID];
+  const enabled = readJson(SETTINGS, {}).enabledPlugins?.[PLUGIN_ID] === true;
+  const valid = stat ? looksLikeOurPlugin(TARGET) : false;
+  console.log(`target:    ${kind === "missing" ? "✗" : "✓"} ${TARGET} (${kind})`);
+  console.log(`valid:     ${valid ? "✓" : "✗"} plugin files present`);
+  console.log(`installed: ${installed ? "✓" : "✗"} ${INSTALLED}`);
+  console.log(`enabled:   ${enabled ? "✓" : "✗"} ${SETTINGS}`);
+  console.log(`mode:      ${chooseMode()} (would-be on next install)`);
+}
+
+function prepack() {
+  const pluginJsonPath = join(PLUGIN_ROOT, ".claude-plugin", "plugin.json");
+  const pj = JSON.parse(readFileSync(pluginJsonPath, "utf8"));
+  if (pj.version !== pkg.version) {
+    pj.version = pkg.version;
+    writeFileSync(pluginJsonPath, JSON.stringify(pj, null, 2) + "\n");
+    log(`synced plugin.json version → ${pkg.version}`);
+  } else {
+    log(`plugin.json already at ${pkg.version}`);
+  }
 }
 
 function help() {
   console.log(`claude-math v${pkg.version}
 
 Usage:
-  claude-math install      Symlink the plugin into ~/.claude/plugins/local/ and enable it.
-  claude-math uninstall    Remove the symlink and disable the plugin.
-  claude-math status       Show install state.
-  claude-math --version    Print version.
-  claude-math --help       This help.
+  claude-math install [--force] [--copy]
+      Symlink (or copy) the plugin into ~/.claude/plugins/local/ and enable it.
+      Auto-copies if invoked via npx; auto-junctions on Windows.
+        --force   Overwrite an existing install at the target path.
+        --copy    Force copy mode even on supported platforms.
 
-Override the Claude config dir with CLAUDE_CONFIG_DIR.
+  claude-math uninstall [--force]
+      Remove the plugin and disable it. --force lets it remove a directory
+      that does not look like a claude-math install.
+
+  claude-math status
+      Show install state, target kind, and which mode would be used.
+
+  claude-math prepack
+      Sync .claude-plugin/plugin.json version from package.json. Runs as an
+      npm \`prepack\` hook; safe to run manually.
+
+  claude-math --version
+  claude-math --help
+
+Env:
+  CLAUDE_CONFIG_DIR   Override the Claude config directory (default ~/.claude).
 `);
 }
 
-function status() {
-  const linked = lstatSyncSafe(TARGET_LINK)?.isSymbolicLink() ?? false;
-  const installed = !!readJson(INSTALLED, { plugins: {} }).plugins?.[PLUGIN_ID];
-  const enabled = readJson(SETTINGS, {}).enabledPlugins?.[PLUGIN_ID] === true;
-  console.log(`symlink:   ${linked ? "✓" : "✗"} ${TARGET_LINK}`);
-  console.log(`installed: ${installed ? "✓" : "✗"} ${INSTALLED}`);
-  console.log(`enabled:   ${enabled ? "✓" : "✗"} ${SETTINGS}`);
-}
-
-const cmd = process.argv[2];
 switch (cmd) {
   case "install": install(); break;
   case "uninstall":
   case "remove": uninstall(); break;
   case "status": status(); break;
-  case "--version":
-  case "-v": console.log(pkg.version); break;
-  case "--help":
-  case "-h":
-  case undefined: help(); break;
+  case "prepack": prepack(); break;
+  case undefined:
+    if (flags.has("--version") || flags.has("-v")) { console.log(pkg.version); break; }
+    help(); break;
   default: die(`unknown command: ${cmd}. Run 'claude-math --help'.`);
 }
