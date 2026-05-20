@@ -1,0 +1,9 @@
+{
+  "name": "claude-math",
+  "version": "0.1.0",
+  "description": "Render math beautifully in Claude Code. Unicode glyphs by default (works in every terminal). Opt-in graphical rendering for sixel/kitty-graphics terminals.",
+  "author": { "name": "Vladimir Rotariu", "email": "vladimir@entropia.ai" },
+  "license": "MIT",
+  "homepage": "https://github.com/entropia-ai/claude-math",
+  "keywords": ["math", "latex", "katex", "unicode", "rendering", "skill"]
+}

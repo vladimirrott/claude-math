@@ -1,0 +1,50 @@
+{
+  "name": "claude-math",
+  "version": "0.1.0",
+  "description": "Render math beautifully in Claude Code. Unicode glyphs by default; opt-in graphical rendering for sixel/kitty terminals.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "claude-code-plugin",
+    "skill",
+    "math",
+    "latex",
+    "katex",
+    "unicode",
+    "terminal"
+  ],
+  "homepage": "https://github.com/entropia-ai/claude-math",
+  "bugs": {
+    "url": "https://github.com/entropia-ai/claude-math/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/entropia-ai/claude-math.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Vladimir Rotariu",
+    "email": "vladimir@entropia.ai"
+  },
+  "type": "module",
+  "bin": {
+    "claude-math": "bin/claude-math.js"
+  },
+  "files": [
+    ".claude-plugin/",
+    "skills/",
+    "bin/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node bin/claude-math.js --version"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
