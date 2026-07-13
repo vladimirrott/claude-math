@@ -158,6 +158,60 @@ test("install refuses to clobber a foreign symlink without --force", () => {
   } finally { sb.cleanup(); }
 });
 
+function codexSandbox() {
+  const dir = mkdtempSync(join(tmpdir(), "claude-math-codex-"));
+  return {
+    dir,
+    target: join(dir, "skills", "math-unicode"),
+    skill: join(dir, "skills", "math-unicode", "SKILL.md"),
+    run(...cliArgs) {
+      return execFileSync(process.execPath, [CLI, ...cliArgs], {
+        env: { ...process.env, CODEX_HOME: dir },
+        encoding: "utf8",
+      });
+    },
+    cleanup() { rmSync(dir, { recursive: true, force: true }); },
+  };
+}
+
+test("install --codex drops the skill into CODEX_HOME/skills", () => {
+  const sb = codexSandbox();
+  try {
+    sb.run("install", "--codex");
+    assert.equal(existsSync(sb.skill), true, "SKILL.md should be installed");
+    assert.match(readFileSync(sb.skill, "utf8"), /name:\s*math-unicode/);
+  } finally { sb.cleanup(); }
+});
+
+test("uninstall --codex removes the skill", () => {
+  const sb = codexSandbox();
+  try {
+    sb.run("install", "--codex");
+    sb.run("uninstall", "--codex");
+    assert.equal(existsSync(sb.target), false);
+  } finally { sb.cleanup(); }
+});
+
+test("status --codex reports install state", () => {
+  const sb = codexSandbox();
+  try {
+    assert.match(sb.run("status", "--codex"), /codex skill:.*✗/);
+    sb.run("install", "--codex");
+    assert.match(sb.run("status", "--codex"), /codex skill:.*✓/);
+  } finally { sb.cleanup(); }
+});
+
+test("install --codex refuses to clobber a foreign dir without --force", () => {
+  const sb = codexSandbox();
+  try {
+    mkdirSync(sb.target, { recursive: true });
+    writeFileSync(join(sb.target, "OTHER.md"), "not ours");
+    assert.throws(() => sb.run("install", "--codex"), /--force/);
+    sb.run("install", "--codex", "--force");
+    assert.equal(existsSync(sb.skill), true);
+  } finally { sb.cleanup(); }
+});
+
 test("prepack syncs plugin.json version", () => {
   const sb = sandbox();
   try {

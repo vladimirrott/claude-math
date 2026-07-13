@@ -71,6 +71,17 @@ once is the easiest path.
 /plugin install claude-math@vladimirrott
 ```
 
+### Codex CLI
+
+The `math-unicode` skill works in [OpenAI Codex CLI](https://developers.openai.com/codex/) too: Codex reads skills from `$CODEX_HOME/skills/<name>/SKILL.md` using the same `name` + `description` frontmatter format, so the exact same skill drops straight in.
+
+```bash
+npm install -g claude-math
+claude-math install --codex
+```
+
+This copies the skill into `$CODEX_HOME/skills/math-unicode/` (default `~/.codex/skills/`). Codex auto-detects new skills (restart Codex if it does not appear); invoke it with `/skills` or by mentioning `$math-unicode`. Use `claude-math status --codex` to check and `claude-math uninstall --codex` to remove.
+
 ### Hacking on this repo
 
 Working from a clone (before or after publish):
