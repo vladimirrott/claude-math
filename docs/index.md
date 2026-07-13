@@ -2,6 +2,15 @@
 
 A Claude Code plugin that makes mathematical notation legible in the terminal. It ships one skill, `math-unicode`, that tells Claude to emit math as inline **Unicode glyphs** (∑, α, ≤, ℝ, x̄, ∫₀¹) instead of LaTeX (`$...$`, `\(...\)`, `$$...$$`), which the Claude Code terminal does not render and shows as raw dollar-sign noise.
 
+![Without claude-math, LaTeX prints as raw dollar-sign noise; with it, the same answer renders as clean Unicode math.](assets/demo.svg)
+
+## Before / after
+
+```
+without:  The cohort is $Q = \{ (s,r) \in T : n_{s,r} \geq 18 \}$, with $|Q|/|T| \approx 17.3\%$.
+with:     The cohort is Q = { (s,r) ∈ T : n_{s,r} ≥ 18 }, with |Q| / |T| ≈ 17.3 %.
+```
+
 ## The problem
 
 Claude Code's terminal does not render LaTeX. Ask for a derivation and you get `$\sum_{i=1}^{n} x_i$` printed literally, which is harder to read than plain text. This is a known, still-open gap (see [claude-code#44479](https://github.com/anthropics/claude-code/issues/44479)). Unicode glyphs render in every terminal, survive SSH, tmux, CI logs, copy-paste, and search, so they are the reliable way to show math where a graphics protocol cannot reach.
