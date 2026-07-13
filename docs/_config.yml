@@ -1,0 +1,3 @@
+title: claude-math
+description: "Render math legibly in the Claude Code terminal: Unicode glyphs instead of unrenderable LaTeX."
+theme: jekyll-theme-cayman
