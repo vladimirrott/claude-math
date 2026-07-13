@@ -51,7 +51,7 @@ directories at the target). `--copy` forces a real copy instead of symlink.
 ### Manual install
 
 ```bash
-git clone https://github.com/entropia-ai/claude-math \
+git clone https://github.com/vladimirrott/claude-math \
   ~/.claude/plugins/local/claude-math
 ```
 
@@ -62,15 +62,17 @@ once is the easiest path.
 
 ### Via Claude Code's plugin marketplace
 
-`/plugin install claude-math` once a marketplace listing exists. Until then,
-the npm path above is the supported install method.
+```
+/plugin marketplace add vladimirrott/claude-math
+/plugin install claude-math@vladimirrott
+```
 
 ### Hacking on this repo
 
 Working from a clone (before or after publish):
 
 ```bash
-git clone https://github.com/entropia-ai/claude-math && cd claude-math
+git clone https://github.com/vladimirrott/claude-math && cd claude-math
 node bin/claude-math.js install     # uses the cloned directory directly
 node --test test/                   # run the test suite
 ```
