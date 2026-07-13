@@ -2,8 +2,12 @@
 
 Make math in Claude Code legible.
 
+<p align="center">
+  <img src="assets/demo.svg" alt="Without claude-math, LaTeX prints as raw dollar-sign noise; with it, the same answer renders as clean Unicode math." width="760">
+</p>
+
 Claude Code's terminal does not render LaTeX. Without help, a formula like
-`$f(x) = \sum_{i=1}^n x_i$` appears as raw dollar signs and backslashes —
+`$f(x) = \sum_{i=1}^n x_i$` appears as raw dollar signs and backslashes,
 exactly the noise you wanted formatting to remove. This plugin ships a single
 skill (`math-unicode`) that instructs Claude to emit math as Unicode glyphs
 inline, which every terminal already renders.

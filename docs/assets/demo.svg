@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 300" width="820" height="300" role="img" aria-label="Without claude-math, LaTeX prints as raw dollar-sign noise in the Claude Code terminal; with claude-math, the same answer renders as clean Unicode math.">
+  <rect x="8" y="8" width="804" height="284" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+  <circle cx="34" cy="34" r="6.5" fill="#ff5f56"/>
+  <circle cx="56" cy="34" r="6.5" fill="#ffbd2e"/>
+  <circle cx="78" cy="34" r="6.5" fill="#27c93f"/>
+  <text x="410" y="39" text-anchor="middle" fill="#6e7681" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace" font-size="13">claude-math</text>
+  <line x1="8" y1="56" x2="812" y2="56" stroke="#21262d" stroke-width="1"/>
+
+  <text x="28" y="92" xml:space="preserve" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace" font-size="17"><tspan fill="#7ee787">&#10095; </tspan><tspan fill="#adbac7">ask claude: state the entropy H(p) and the cohort filter Q</tspan></text>
+
+  <!-- WITHOUT claude-math -->
+  <g opacity="1" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace">
+    <text x="28" y="142" font-size="14" fill="#f85149" font-weight="bold" xml:space="preserve">&#10007;  without claude-math   </text>
+    <text x="250" y="142" font-size="13" fill="#6e7681">LaTeX prints as raw noise</text>
+    <text x="28" y="190" font-size="17" fill="#8b949e" xml:space="preserve">H(p) = $-\sum_{i} p_{i} \log p_{i}$</text>
+    <text x="28" y="224" font-size="17" fill="#8b949e" xml:space="preserve">Q = $\{\,(s,r) : n_{s,r} \ge 6\,\}$</text>
+    <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.46;0.5;0.96;1" dur="6s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- WITH claude-math -->
+  <g opacity="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace">
+    <text x="28" y="142" font-size="14" fill="#3fb950" font-weight="bold" xml:space="preserve">&#10003;  with claude-math   </text>
+    <text x="230" y="142" font-size="13" fill="#6e7681">renders in any terminal</text>
+    <text x="28" y="190" font-size="17" fill="#c9d1d9" xml:space="preserve">H(p) = &#8722; &#8721;&#7522; p&#7522; &#183; log p&#7522;</text>
+    <text x="28" y="224" font-size="17" fill="#c9d1d9" xml:space="preserve">Q = { (s,r) : n_{s,r} &#8805; 6 }</text>
+    <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.46;0.5;0.96;1" dur="6s" repeatCount="indefinite"/>
+  </g>
+
+  <line x1="28" y1="246" x2="792" y2="246" stroke="#21262d" stroke-width="1"/>
+  <text x="28" y="272" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace" font-size="12.5" fill="#8b949e">same answer from Claude, two renderings. the skill makes it emit the readable one.</text>
+</svg>
