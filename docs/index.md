@@ -32,6 +32,14 @@ npx claude-math install
 
 Then restart Claude Code so the skill loads.
 
+Into Codex CLI (same `SKILL.md` format; Codex reads `$CODEX_HOME/skills/`):
+
+```
+claude-math install --codex
+```
+
+Codex auto-detects the skill; invoke it with `/skills` or `$math-unicode`.
+
 ## How it works
 
 The plugin is a single skill file plus a small installer CLI:

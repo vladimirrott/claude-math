@@ -32,6 +32,15 @@ const TARGET = join(LOCAL_DIR, PLUGIN_NAME);
 const SETTINGS = join(CLAUDE_DIR, "settings.json");
 const INSTALLED = join(PLUGINS_DIR, "installed_plugins.json");
 
+// Codex target: Codex reads skills from $CODEX_HOME/skills/<name>/SKILL.md.
+// The SKILL.md format (name + description frontmatter) is identical to Claude Code's,
+// so the same skill directory drops straight in.
+const SKILL_NAME = "math-unicode";
+const SKILL_SRC = join(PLUGIN_ROOT, "skills", SKILL_NAME);
+const CODEX_HOME = process.env.CODEX_HOME || join(homedir(), ".codex");
+const CODEX_SKILLS_DIR = join(CODEX_HOME, "skills");
+const CODEX_TARGET = join(CODEX_SKILLS_DIR, SKILL_NAME);
+
 const pkg = JSON.parse(readFileSync(join(PLUGIN_ROOT, "package.json"), "utf8"));
 
 const args = process.argv.slice(2);
@@ -39,6 +48,7 @@ const flags = new Set(args.filter((a) => a.startsWith("-")));
 const cmd = args.find((a) => !a.startsWith("-"));
 const FORCE = flags.has("--force") || flags.has("-f");
 const FORCE_COPY = flags.has("--copy");
+const CODEX = flags.has("--codex");
 
 function log(msg) { console.log(`[claude-math] ${msg}`); }
 function die(msg) { console.error(`[claude-math] ${msg}`); process.exit(1); }
@@ -184,7 +194,40 @@ function unregister() {
   }
 }
 
+function installCodex() {
+  mkdirSync(CODEX_SKILLS_DIR, { recursive: true });
+  const stat = lstatSafe(CODEX_TARGET);
+  if (stat) {
+    const ours = existsSync(join(CODEX_TARGET, "SKILL.md"));
+    if (!ours && !FORCE) {
+      die(`${CODEX_TARGET} exists and is not a math-unicode skill. Inspect it, then re-run with --force.`);
+    }
+    rmSync(CODEX_TARGET, { recursive: true, force: true });
+  }
+  cpSync(SKILL_SRC, CODEX_TARGET, { recursive: true });
+  log(`installed skill → ${CODEX_TARGET}`);
+  log("Codex auto-detects new skills; restart Codex if it doesn't appear. Invoke with /skills or $math-unicode.");
+}
+
+function uninstallCodex() {
+  const stat = lstatSafe(CODEX_TARGET);
+  if (!stat) { log(`nothing to remove at ${CODEX_TARGET}`); return; }
+  if (existsSync(join(CODEX_TARGET, "SKILL.md")) || FORCE) {
+    rmSync(CODEX_TARGET, { recursive: true, force: true });
+    log(`removed skill ${CODEX_TARGET}`);
+    return;
+  }
+  log(`${CODEX_TARGET} exists but is not our skill — leaving alone (use --force to remove anyway)`);
+}
+
+function statusCodex() {
+  const present = existsSync(join(CODEX_TARGET, "SKILL.md"));
+  console.log(`codex skill: ${present ? "✓" : "✗"} ${CODEX_TARGET}`);
+  console.log(`codex home:  ${CODEX_HOME}`);
+}
+
 function install() {
+  if (CODEX) return installCodex();
   const mode = chooseMode();
   clearTarget();
   placePlugin(mode);
@@ -194,12 +237,14 @@ function install() {
 }
 
 function uninstall() {
+  if (CODEX) return uninstallCodex();
   removeTarget();
   unregister();
   log("done. Restart Claude Code to drop the skill.");
 }
 
 function status() {
+  if (CODEX) return statusCodex();
   const stat = lstatSafe(TARGET);
   const kind = !stat ? "missing"
     : stat.isSymbolicLink() ? "symlink"
@@ -231,18 +276,22 @@ function help() {
   console.log(`claude-math v${pkg.version}
 
 Usage:
-  claude-math install [--force] [--copy]
+  claude-math install [--force] [--copy] [--codex]
       Symlink (or copy) the plugin into ~/.claude/plugins/local/ and enable it.
       Auto-copies if invoked via npx; auto-junctions on Windows.
         --force   Overwrite an existing install at the target path.
         --copy    Force copy mode even on supported platforms.
+        --codex   Install the math-unicode skill for Codex CLI instead, into
+                  $CODEX_HOME/skills/math-unicode/ (default ~/.codex/skills/).
 
-  claude-math uninstall [--force]
+  claude-math uninstall [--force] [--codex]
       Remove the plugin and disable it. --force lets it remove a directory
-      that does not look like a claude-math install.
+      that does not look like a claude-math install. --codex removes the
+      Codex skill instead.
 
-  claude-math status
+  claude-math status [--codex]
       Show install state, target kind, and which mode would be used.
+      --codex shows the Codex skill install state instead.
 
   claude-math prepack
       Sync .claude-plugin/plugin.json version from package.json. Runs as an
