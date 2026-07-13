@@ -42,7 +42,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test \"test/**/*.test.js\"",
+    "test": "node --test test/*.test.js",
     "prepack": "node bin/claude-math.js prepack",
     "prepublishOnly": "npm test && npm pack --dry-run"
   },
