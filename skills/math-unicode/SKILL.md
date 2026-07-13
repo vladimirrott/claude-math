@@ -177,6 +177,12 @@ H(p) = − Σ_{x ∈ X} p(x) · log p(x)        (Σ = sum over the support X)
 
 The reader's comprehension is the only metric. Choose whichever form is clearest, then stay consistent within a passage.
 
+### Rule 11 — Plain letters for variables; never style with math-alphanumeric codepoints
+
+Write variable names and identifiers with ordinary letters (x, A, Var, RSS). Do **not** reach into the Unicode *Mathematical Alphanumeric Symbols* block (𝐀 bold, 𝐴 italic, 𝓐 script, 𝔸 styled double-struck) to *style* ordinary letters. Those codepoints garble on copy/paste, terminal search, and screen readers — the same failure Claude Code hit in issue #61558.
+
+Exception: the standard, semantically meaningful blackboard-bold sets and operators are correct notation, not styling — keep using ℕ ℤ ℚ ℝ ℂ ℙ 𝔽 (number sets) and 𝔼 (expectation). Use those; don't hand-style anything else.
+
 ## Quick reference — common forms
 
 ```
@@ -199,6 +205,7 @@ Quantile          q_α = inf{ x : F(x) ≥ α }
 ✗   \( a^2 + b^2 = c^2 \)
 ✗   $$\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
 ✗   \[ |Q|/|T| \approx 16.9\% \]
+✗   Let 𝑉𝑎𝑟 = …   or   matrix 𝐀 = …   (math-alphanumeric styling; garbles on copy/search — write Var, A)
 ```
 
 If asked to produce raw LaTeX (e.g. for a `.tex` file or a KaTeX-rendering tool downstream), do so — and call it out explicitly: *"Raw LaTeX as requested; this will not render in the terminal."*
