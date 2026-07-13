@@ -24,7 +24,9 @@ After:   The qualifying cohort is Q = { (s,r) ∈ T : n_{s,r} ≥ 18 ∧ p⁰_{s
 
 ## Install
 
-### via npm (recommended)
+The quickest install is through the plugin marketplace (see below). The npm and manual paths also work.
+
+### via npm
 
 ```bash
 npm install -g claude-math
@@ -36,7 +38,7 @@ in `installed_plugins.json`, and enables it in `settings.json` (atomically;
 both files get a `.claude-math.bak` backup on first touch). Restart Claude
 Code and the skill loads.
 
-`npx claude-math install` also works — the CLI auto-detects an npx-cache
+`npx claude-math install` also works: the CLI auto-detects an npx-cache
 install path and **copies** rather than symlinks (since the cache directory
 is ephemeral). Prefer the global install if you want updates via
 `npm update -g claude-math` to propagate automatically.
@@ -61,10 +63,10 @@ git clone https://github.com/vladimirrott/claude-math \
 
 Then add `"claude-math@local": true` under `enabledPlugins` in
 `~/.claude/settings.json` and a matching entry in
-`~/.claude/plugins/installed_plugins.json`. The CLI does both — running it
+`~/.claude/plugins/installed_plugins.json`. The CLI does both; running it
 once is the easiest path.
 
-### Via Claude Code's plugin marketplace
+### Via Claude Code's plugin marketplace (recommended)
 
 ```
 /plugin marketplace add vladimirrott/claude-math
@@ -93,50 +95,45 @@ node --test test/                   # run the test suite
 ```
 
 `CLAUDE_CONFIG_DIR=/tmp/somewhere claude-math install` lets you test against
-a sandbox without touching your real `~/.claude` state — useful for
+a sandbox without touching your real `~/.claude` state, useful for
 contributing.
 
 The `math-unicode` skill auto-triggers any time Claude writes or explains math.
 No configuration required.
 
-## Opt-in: graphical rendering (sixel / kitty graphics)
+## Graphical rendering (sixel / kitty): not inside the chat
 
-For users on terminals that support graphics protocols — **kitty, wezterm,
-ghostty, foot, mlterm** — a companion sidecar can render `$…$` and `$$…$$`
-as inline KaTeX images. Roadmap:
+Rendering math as an actual image (sixel or kitty graphics) is **not possible
+inside the Claude Code chat**. The TUI repaints its own screen buffer on every
+update and overwrites any graphics escape sequences a plugin emits, and its
+line accounting does not know an image's height. So in-chat output stays
+Unicode, which is the point of this skill.
 
-- **`claude-math-render`** — an MCP server exposing a `render_math(latex, display)`
-  tool. Claude calls it with raw LaTeX; the server pipes through headless
-  KaTeX → PNG → emits via the terminal's graphics protocol (kitty graphics
-  protocol or sixel) so the image appears inline with text output.
-- Capability detection at session start (a `SessionStart` hook reads `$TERM`
-  and the kitty graphics protocol query response) selects which skill is
-  active: `math-unicode` (default) or `math-latex-passthrough` (graphical
-  terminals — emit raw LaTeX, the MCP renders it).
-- For non-interactive use, pipe `claude --print "…" | markless` ([markless](https://github.com/jvanderberg/markless)
-  renders LaTeX via Typst with sixel/kitty/iTerm2 image fallback).
-
-Status: design only. Contributions welcome — see [`docs/render-architecture.md`](docs/render-architecture.md) (TODO).
+Roadmap (not built yet): a standalone `claude-math render "<latex>"` command
+that converts LaTeX to an image and prints it via the terminal's graphics
+protocol in your own graphics-capable terminal (kitty, wezterm, ghostty,
+foot), outside the Claude Code TUI. It would be a convenience for viewing an
+equation on demand, not in-chat rendering.
 
 ## Why Unicode by default?
 
 | Path | Works in plain terminal | SSH / tmux | CI logs | Copy-paste | Install cost |
 |---|---|---|---|---|---|
 | Unicode (this skill) | ✓ | ✓ | ✓ | ✓ | 1 file |
-| Sixel / kitty graphics | ✗ | partial | ✗ | ✗ images | MCP + daemon + Node + KaTeX |
+| Sixel / kitty graphics | ✗ (not in chat) | partial | ✗ | ✗ images | separate render CLI (roadmap) |
 | Pipe through external viewer | ✗ TUI breaks | n/a | ✓ if `--print` | ✓ | shell wrapper |
 
 Unicode is the only path that survives every distribution channel a Claude
-Code session ends up in. The graphical extension is opt-in because it requires
-trade-offs the average user shouldn't have to think about.
+Code session ends up in. The graphical path is roadmap-only and, even then,
+would run as a separate terminal command outside the chat.
 
 ## Related issues & prior art
 
-- [anthropics/claude-code#44479](https://github.com/anthropics/claude-code/issues/44479) — native LaTeX in terminal output (open)
-- [openai/codex#15865](https://github.com/openai/codex/issues/15865) — same gap on Codex CLI (Unicode-only today)
-- [warpdotdev/warp#9677](https://github.com/warpdotdev/warp/issues/9677) — same gap on Warp
-- [`markless`](https://github.com/jvanderberg/markless) — terminal MD viewer with Typst math + kitty/sixel images
-- [`mdviewer`](https://github.com/aquele-dinho/mdviewer), [`glowm`](https://github.com/atani/glowm), [`mdterm`](https://www.toolhunter.cc/tools/mdterm) — adjacent viewers
+- [anthropics/claude-code#44479](https://github.com/anthropics/claude-code/issues/44479): native LaTeX in terminal output (open)
+- [openai/codex#15865](https://github.com/openai/codex/issues/15865): LaTeX in Codex CLI output (claude-math covers this via `claude-math install --codex`)
+- [warpdotdev/warp#9677](https://github.com/warpdotdev/warp/issues/9677): same gap on Warp
+- [`markless`](https://github.com/jvanderberg/markless): terminal Markdown viewer with Typst math and kitty/sixel images
+- [`mdviewer`](https://github.com/aquele-dinho/mdviewer), [`glowm`](https://github.com/atani/glowm), [`mdterm`](https://www.toolhunter.cc/tools/mdterm): adjacent viewers
 
 ## License
 
