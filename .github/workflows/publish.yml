@@ -19,7 +19,9 @@ jobs:
 
   publish:
     needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Skipped unless npm publishing is set up: set repo variable NPM_PUBLISH=true
+    # and add the NPM_TOKEN secret. Keeps tags/releases from red-failing on npm auth.
+    if: startsWith(github.ref, 'refs/tags/v') && vars.NPM_PUBLISH == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
