@@ -1,0 +1,47 @@
+name: release-please
+
+on:
+  push:
+    branches: [main]
+
+# No permissions by default; each job opts in to only what it needs.
+permissions: {}
+
+jobs:
+  # 1. Maintain the Release PR (version bump + changelog). When that PR is
+  #    merged, this same run creates the GitHub release + tag and sets
+  #    release_created=true, which gates the publish job below.
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # create the release, tag, and version-bump commit
+      pull-requests: write    # open/update the Release PR
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # 2. Publish to npm via OIDC trusted publishing — no NPM_TOKEN.
+  #    Runs only when a release was just created.
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write         # mint the OIDC token npm verifies against the trusted publisher
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      # Trusted publishing needs npm >= 11.5.1; runner images can ship older.
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
+      # No NODE_AUTH_TOKEN: OIDC authenticates the run, provenance is automatic.
+      - run: npm publish --provenance --access public
