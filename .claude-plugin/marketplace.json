@@ -1,13 +1,17 @@
 {
   "name": "vladimirrott",
-  "owner": { "name": "Vladimir Rotariu" },
-  "metadata": { "description": "Vladimir's Claude Code plugins" },
+  "owner": {
+    "name": "Vladimir Rotariu"
+  },
+  "metadata": {
+    "description": "Vladimir's Claude Code plugins"
+  },
   "plugins": [
     {
       "name": "claude-math",
       "source": "./",
       "description": "Renders math as Unicode glyphs in the terminal instead of unrenderable LaTeX",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }

@@ -2,6 +2,13 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.2.0](https://github.com/vladimirrott/claude-math/compare/v0.1.0...v0.2.0) (2026-07-17)
+
+
+### Features
+
+* **cli:** add --codex install target (drops math-unicode into Codex skills dir) ([#3](https://github.com/vladimirrott/claude-math/issues/3)) ([738a831](https://github.com/vladimirrott/claude-math/commit/738a8312f8c3febd83588657377e8013946400c9))
+
 ## [0.1.0] — 2026-05-20
 
 ### Added
