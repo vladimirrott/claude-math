@@ -1,0 +1,30 @@
+name: HOL Plugin Scanner
+
+# Required by the awesome-codex-plugins listing: the plugin scanner must run in
+# CI. Third-party action pinned to a commit SHA (not a moving tag) for
+# supply-chain safety. Text output only, no SARIF upload, so the job needs no
+# elevated permissions.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - name: HOL Plugin Scanner
+        uses: hashgraph-online/ai-plugin-scanner-action@ad321a9ec1bd2973f2783cd41f1082f4a9ac90b1  # v1
+        with:
+          plugin_dir: "."
+          mode: scan
+          min_score: 80
+          fail_on_severity: high
+          format: text
+          upload_sarif: false
