@@ -261,14 +261,21 @@ function status() {
 }
 
 function prepack() {
-  const pluginJsonPath = join(PLUGIN_ROOT, ".claude-plugin", "plugin.json");
-  const pj = JSON.parse(readFileSync(pluginJsonPath, "utf8"));
-  if (pj.version !== pkg.version) {
-    pj.version = pkg.version;
-    writeFileSync(pluginJsonPath, JSON.stringify(pj, null, 2) + "\n");
-    log(`synced plugin.json version → ${pkg.version}`);
+  syncManifestVersion(join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"), "plugin.json");
+  const codexManifest = join(PLUGIN_ROOT, ".codex-plugin", "plugin.json");
+  if (existsSync(codexManifest)) {
+    syncManifestVersion(codexManifest, ".codex-plugin/plugin.json");
+  }
+}
+
+function syncManifestVersion(path, label) {
+  const manifest = JSON.parse(readFileSync(path, "utf8"));
+  if (manifest.version !== pkg.version) {
+    manifest.version = pkg.version;
+    writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
+    log(`synced ${label} version → ${pkg.version}`);
   } else {
-    log(`plugin.json already at ${pkg.version}`);
+    log(`${label} already at ${pkg.version}`);
   }
 }
 

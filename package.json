@@ -32,7 +32,9 @@
   },
   "files": [
     ".claude-plugin/",
+    ".codex-plugin/",
     "skills/",
+    "SECURITY.md",
     "bin/",
     "README.md",
     "LICENSE",
