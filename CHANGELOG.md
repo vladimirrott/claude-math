@@ -2,6 +2,13 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.3.0](https://github.com/vladimirrott/claude-math/compare/v0.2.0...v0.3.0) (2026-07-18)
+
+
+### Features
+
+* make claude-math a first-class Codex plugin + harden CI supply chain ([#8](https://github.com/vladimirrott/claude-math/issues/8)) ([9acb093](https://github.com/vladimirrott/claude-math/commit/9acb0934025572daa2607ecd7c7b92b94321bbdd))
+
 ## [0.2.0](https://github.com/vladimirrott/claude-math/compare/v0.1.0...v0.2.0) (2026-07-17)
 
 
