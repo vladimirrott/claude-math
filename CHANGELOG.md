@@ -2,6 +2,13 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.3.1](https://github.com/vladimirrott/claude-math/compare/v0.3.0...v0.3.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **skill:** bracket big-operator bounds and parenthesize multi-char exponents ([#11](https://github.com/vladimirrott/claude-math/issues/11)) ([4284b6d](https://github.com/vladimirrott/claude-math/commit/4284b6d5b7819308b038cd2b798fb0bef028fa69))
+
 ## [0.3.0](https://github.com/vladimirrott/claude-math/compare/v0.2.0...v0.3.0) (2026-07-18)
 
 

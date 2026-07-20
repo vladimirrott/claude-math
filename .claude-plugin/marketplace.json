@@ -11,7 +11,7 @@
       "name": "claude-math",
       "source": "./",
       "description": "Renders math as Unicode glyphs in the terminal instead of unrenderable LaTeX",
-      "version": "0.3.0"
+      "version": "0.3.1"
     }
   ]
 }
