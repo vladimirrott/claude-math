@@ -77,14 +77,27 @@ once is the easiest path.
 
 ### Codex CLI
 
-The `math-unicode` skill works in [OpenAI Codex CLI](https://developers.openai.com/codex/) too: Codex loads user skills from `~/.agents/skills/<name>/SKILL.md` using the same `name` + `description` frontmatter format, so the exact same skill drops straight in. (The older `~/.codex/skills/` path is deprecated; current Codex still reads it for backward compatibility, but `~/.agents/skills/` is the current location.)
+claude-math works in [OpenAI Codex CLI](https://developers.openai.com/codex/) too — the skill uses the same `name` + `description` `SKILL.md` frontmatter Codex reads. Two install paths:
+
+**Native Codex plugin (recommended — no npm):**
+
+```
+codex plugin marketplace add vladimirrott/claude-math
+codex plugin add claude-math@vladimirrott
+```
+
+Codex installs the plugin (manifest: `.codex-plugin/plugin.json`) and loads its `math-unicode` skill. Restart Codex if it does not appear; invoke with `/skills` or by mentioning `$math-unicode`. Remove with `codex plugin remove claude-math@vladimirrott`.
+
+**Via npm (drops just the skill file):**
 
 ```bash
 npm install -g claude-math
 claude-math install --codex
 ```
 
-This copies the skill into `~/.agents/skills/math-unicode/`. Codex auto-detects new skills (restart Codex if it does not appear); invoke it with `/skills` or by mentioning `$math-unicode`. Use `claude-math status --codex` to check and `claude-math uninstall --codex` to remove. Set `CLAUDE_MATH_CODEX_SKILLS_DIR` to install into a non-default skills directory.
+This copies the skill into `~/.agents/skills/math-unicode/` (the current Codex user-skills dir; the older `~/.codex/skills/` path is deprecated but still read for backward compatibility). Use `claude-math status --codex` to check and `claude-math uninstall --codex` to remove. Set `CLAUDE_MATH_CODEX_SKILLS_DIR` to target a non-default skills directory.
+
+Use one path or the other, not both — installing via the plugin *and* the CLI would load two copies of the same skill.
 
 ### Hacking on this repo
 
