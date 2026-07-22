@@ -1,7 +1,7 @@
 {
   "name": "claude-math",
   "version": "0.3.1",
-  "description": "Render math legibly in Claude Code. Emits Unicode glyphs instead of unrenderable LaTeX in the terminal (works in every terminal). Graphical sixel/kitty rendering is on the roadmap.",
+  "description": "Render math legibly in Claude Code (and OpenAI Codex CLI, via the same SKILL.md). Emits Unicode glyphs instead of unrenderable LaTeX in the terminal (works in every terminal). Graphical sixel/kitty rendering is on the roadmap.",
   "author": {
     "name": "Vladimir Rotariu",
     "email": "vladimirrott@users.noreply.github.com"
@@ -14,6 +14,8 @@
     "katex",
     "unicode",
     "rendering",
-    "skill"
+    "skill",
+    "codex",
+    "codex-cli"
   ]
 }

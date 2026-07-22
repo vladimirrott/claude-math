@@ -32,13 +32,15 @@ const TARGET = join(LOCAL_DIR, PLUGIN_NAME);
 const SETTINGS = join(CLAUDE_DIR, "settings.json");
 const INSTALLED = join(PLUGINS_DIR, "installed_plugins.json");
 
-// Codex target: Codex reads skills from $CODEX_HOME/skills/<name>/SKILL.md.
-// The SKILL.md format (name + description frontmatter) is identical to Claude Code's,
-// so the same skill directory drops straight in.
+// Codex target: current Codex loads user skills from $HOME/.agents/skills/<name>/SKILL.md.
+// (The older $CODEX_HOME/skills path is deprecated — still read for backward compatibility,
+// but .agents/skills is where current Codex and other terminal agents look.) The SKILL.md
+// format (name + description frontmatter) is identical to Claude Code's, so the same skill
+// directory drops straight in. CLAUDE_MATH_CODEX_SKILLS_DIR overrides the dir (used by tests).
 const SKILL_NAME = "math-unicode";
 const SKILL_SRC = join(PLUGIN_ROOT, "skills", SKILL_NAME);
-const CODEX_HOME = process.env.CODEX_HOME || join(homedir(), ".codex");
-const CODEX_SKILLS_DIR = join(CODEX_HOME, "skills");
+const CODEX_SKILLS_DIR =
+  process.env.CLAUDE_MATH_CODEX_SKILLS_DIR || join(homedir(), ".agents", "skills");
 const CODEX_TARGET = join(CODEX_SKILLS_DIR, SKILL_NAME);
 
 const pkg = JSON.parse(readFileSync(join(PLUGIN_ROOT, "package.json"), "utf8"));
@@ -222,8 +224,8 @@ function uninstallCodex() {
 
 function statusCodex() {
   const present = existsSync(join(CODEX_TARGET, "SKILL.md"));
-  console.log(`codex skill: ${present ? "✓" : "✗"} ${CODEX_TARGET}`);
-  console.log(`codex home:  ${CODEX_HOME}`);
+  console.log(`codex skill:  ${present ? "✓" : "✗"} ${CODEX_TARGET}`);
+  console.log(`codex skills: ${CODEX_SKILLS_DIR}`);
 }
 
 function install() {
@@ -289,7 +291,8 @@ Usage:
         --force   Overwrite an existing install at the target path.
         --copy    Force copy mode even on supported platforms.
         --codex   Install the math-unicode skill for Codex CLI instead, into
-                  $CODEX_HOME/skills/math-unicode/ (default ~/.codex/skills/).
+                  ~/.agents/skills/math-unicode/ (the current Codex user-skills
+                  dir; the legacy ~/.codex/skills path is deprecated).
 
   claude-math uninstall [--force] [--codex]
       Remove the plugin and disable it. --force lets it remove a directory
@@ -308,7 +311,8 @@ Usage:
   claude-math --help
 
 Env:
-  CLAUDE_CONFIG_DIR   Override the Claude config directory (default ~/.claude).
+  CLAUDE_CONFIG_DIR              Override the Claude config directory (default ~/.claude).
+  CLAUDE_MATH_CODEX_SKILLS_DIR   Override the Codex skills directory (default ~/.agents/skills).
 `);
 }
 

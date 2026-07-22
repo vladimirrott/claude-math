@@ -160,13 +160,14 @@ test("install refuses to clobber a foreign symlink without --force", () => {
 
 function codexSandbox() {
   const dir = mkdtempSync(join(tmpdir(), "claude-math-codex-"));
+  const skillsDir = join(dir, "skills");
   return {
     dir,
-    target: join(dir, "skills", "math-unicode"),
-    skill: join(dir, "skills", "math-unicode", "SKILL.md"),
+    target: join(skillsDir, "math-unicode"),
+    skill: join(skillsDir, "math-unicode", "SKILL.md"),
     run(...cliArgs) {
       return execFileSync(process.execPath, [CLI, ...cliArgs], {
-        env: { ...process.env, CODEX_HOME: dir },
+        env: { ...process.env, CLAUDE_MATH_CODEX_SKILLS_DIR: skillsDir },
         encoding: "utf8",
       });
     },
@@ -174,7 +175,7 @@ function codexSandbox() {
   };
 }
 
-test("install --codex drops the skill into CODEX_HOME/skills", () => {
+test("install --codex drops the skill into the Codex skills dir", () => {
   const sb = codexSandbox();
   try {
     sb.run("install", "--codex");

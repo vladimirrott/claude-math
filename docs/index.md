@@ -1,6 +1,6 @@
 # claude-math
 
-A Claude Code plugin that makes mathematical notation legible in the terminal. It ships one skill, `math-unicode`, that tells Claude to emit math as inline **Unicode glyphs** (∑, α, ≤, ℝ, x̄, ∫₀¹) instead of LaTeX (`$...$`, `\(...\)`, `$$...$$`), which the Claude Code terminal does not render and shows as raw dollar-sign noise.
+A skill for terminal coding agents — **Claude Code and OpenAI Codex CLI** — that makes mathematical notation legible in the terminal. It ships one skill, `math-unicode`, that tells the model to emit math as inline **Unicode glyphs** (∑, α, ≤, ℝ, x̄, ∫₀¹) instead of LaTeX (`$...$`, `\(...\)`, `$$...$$`), which neither terminal renders (both show it as raw dollar-sign noise). Packaged as a Claude Code plugin and, via the same `SKILL.md`, a Codex skill.
 
 ![Without claude-math, LaTeX prints as raw dollar-sign noise; with it, the same answer renders as clean Unicode math.](assets/demo.svg)
 
@@ -13,7 +13,7 @@ with:     The cohort is Q = { (s,r) ∈ T : n_{s,r} ≥ 18 }, with |Q| / |T| ≈
 
 ## The problem
 
-Claude Code's terminal does not render LaTeX. Ask for a derivation and you get `$\sum_{i=1}^{n} x_i$` printed literally, which is harder to read than plain text. This is a known, still-open gap (see [claude-code#44479](https://github.com/anthropics/claude-code/issues/44479)). Unicode glyphs render in every terminal, survive SSH, tmux, CI logs, copy-paste, and search, so they are the reliable way to show math where a graphics protocol cannot reach.
+Terminal coding agents do not render LaTeX. Ask for a derivation and you get `$\sum_{i=1}^{n} x_i$` printed literally, which is harder to read than plain text. This is a known, still-open gap in both harnesses (see [claude-code#44479](https://github.com/anthropics/claude-code/issues/44479) and [codex#15865](https://github.com/openai/codex/issues/15865)). Unicode glyphs render in every terminal, survive SSH, tmux, CI logs, copy-paste, and search, so they are the reliable way to show math where a graphics protocol cannot reach.
 
 ## Install
 
@@ -32,7 +32,7 @@ npx claude-math install
 
 Then restart Claude Code so the skill loads.
 
-Into Codex CLI (same `SKILL.md` format; Codex reads `$CODEX_HOME/skills/`):
+Into Codex CLI (same `SKILL.md` format; installs into `~/.agents/skills/`, the current Codex user-skills directory):
 
 ```
 claude-math install --codex

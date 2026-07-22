@@ -1,11 +1,11 @@
 ---
 name: math-unicode
-description: Use whenever you need to express mathematical notation — equations, filters, set-builder, statistics, calculus, logic, ratios, drops, counts. Emit Unicode math glyphs INLINE; never wrap in `$…$`, `\(...\)`, or `$$...$$`. Claude Code terminal does not render LaTeX, so raw delimiters appear as noise. This skill activates automatically when math is involved.
+description: Use whenever you need to express mathematical notation — equations, filters, set-builder, statistics, calculus, logic, ratios, drops, counts. Emit Unicode math glyphs INLINE; never wrap in `$…$`, `\(...\)`, or `$$...$$`. Terminal coding agents (Claude Code, Codex CLI, and others) do not render LaTeX, so raw delimiters appear as noise. This skill activates automatically when math is involved, in both Claude Code and Codex.
 ---
 
 # math-unicode
 
-When emitting mathematical notation in Claude Code, **always use Unicode glyphs inline** — never wrap math in `$…$`, `\(...\)`, or `$$...$$`. Claude Code's terminal does not render LaTeX; raw delimiters appear as plain dollar signs and reduce readability.
+When emitting mathematical notation in a terminal coding agent (Claude Code, Codex CLI, or similar), **always use Unicode glyphs inline** — never wrap math in `$…$`, `\(...\)`, or `$$...$$`. These terminals do not render LaTeX; raw delimiters appear as plain dollar signs and reduce readability.
 
 ## When this skill applies
 
@@ -203,7 +203,7 @@ Sum bounds        ∑[i=1..n] i  =  n(n+1)/2
 Quantile          q_α = inf{ x : F(x) ≥ α }
 ```
 
-## Anti-patterns — never emit these in Claude Code terminal
+## Anti-patterns — never emit these in the terminal (Claude Code / Codex)
 
 ```
 ✗   $f(x) = \sum_{i=1}^{n} x_i$

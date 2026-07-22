@@ -1,16 +1,18 @@
 # claude-math
 
-Make math in Claude Code legible.
+Make math in Claude Code and Codex legible.
 
 <p align="center">
   <img src="assets/demo.svg" alt="Without claude-math, LaTeX prints as raw dollar-sign noise; with it, the same answer renders as clean Unicode math." width="760">
 </p>
 
-Claude Code's terminal does not render LaTeX. Without help, a formula like
-`$f(x) = \sum_{i=1}^n x_i$` appears as raw dollar signs and backslashes,
-exactly the noise you wanted formatting to remove. This plugin ships a single
-skill (`math-unicode`) that instructs Claude to emit math as Unicode glyphs
-inline, which every terminal already renders.
+Terminal coding agents do not render LaTeX. In both **Claude Code** and
+**OpenAI Codex CLI**, a formula like `$f(x) = \sum_{i=1}^n x_i$` appears as raw
+dollar signs and backslashes, exactly the noise you wanted formatting to
+remove. This project ships a single skill (`math-unicode`) that instructs the
+model to emit math as Unicode glyphs inline, which every terminal already
+renders. It installs as a Claude Code plugin and, via the identical `SKILL.md`,
+as a Codex skill (`claude-math install --codex`).
 
 ## Before / after
 
@@ -75,14 +77,14 @@ once is the easiest path.
 
 ### Codex CLI
 
-The `math-unicode` skill works in [OpenAI Codex CLI](https://developers.openai.com/codex/) too: Codex reads skills from `$CODEX_HOME/skills/<name>/SKILL.md` using the same `name` + `description` frontmatter format, so the exact same skill drops straight in.
+The `math-unicode` skill works in [OpenAI Codex CLI](https://developers.openai.com/codex/) too: Codex loads user skills from `~/.agents/skills/<name>/SKILL.md` using the same `name` + `description` frontmatter format, so the exact same skill drops straight in. (The older `~/.codex/skills/` path is deprecated; current Codex still reads it for backward compatibility, but `~/.agents/skills/` is the current location.)
 
 ```bash
 npm install -g claude-math
 claude-math install --codex
 ```
 
-This copies the skill into `$CODEX_HOME/skills/math-unicode/` (default `~/.codex/skills/`). Codex auto-detects new skills (restart Codex if it does not appear); invoke it with `/skills` or by mentioning `$math-unicode`. Use `claude-math status --codex` to check and `claude-math uninstall --codex` to remove.
+This copies the skill into `~/.agents/skills/math-unicode/`. Codex auto-detects new skills (restart Codex if it does not appear); invoke it with `/skills` or by mentioning `$math-unicode`. Use `claude-math status --codex` to check and `claude-math uninstall --codex` to remove. Set `CLAUDE_MATH_CODEX_SKILLS_DIR` to install into a non-default skills directory.
 
 ### Hacking on this repo
 
@@ -98,8 +100,8 @@ node --test test/                   # run the test suite
 a sandbox without touching your real `~/.claude` state, useful for
 contributing.
 
-The `math-unicode` skill auto-triggers any time Claude writes or explains math.
-No configuration required.
+The `math-unicode` skill auto-triggers any time the model (Claude or Codex)
+writes or explains math. No configuration required.
 
 ## Graphical rendering (sixel / kitty): not inside the chat
 

@@ -10,7 +10,7 @@
     {
       "name": "claude-math",
       "source": "./",
-      "description": "Renders math as Unicode glyphs in the terminal instead of unrenderable LaTeX",
+      "description": "Renders math as Unicode glyphs in the terminal instead of unrenderable LaTeX (Claude Code + Codex CLI)",
       "version": "0.3.1"
     }
   ]
