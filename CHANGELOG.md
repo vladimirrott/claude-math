@@ -2,6 +2,18 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.4.0](https://github.com/vladimirrott/claude-math/compare/v0.3.1...v0.4.0) (2026-07-22)
+
+
+### Features
+
+* **codex:** add native Codex marketplace plugin install path ([a151252](https://github.com/vladimirrott/claude-math/commit/a151252f6ccd65b9712a705b6aa5910964fcc100))
+
+
+### Bug Fixes
+
+* **codex:** install to current ~/.agents/skills path and make Codex support explicit ([d6041ac](https://github.com/vladimirrott/claude-math/commit/d6041ace4cbdcfc900a81dd1b7cd6643fa46727b))
+
 ## [0.3.1](https://github.com/vladimirrott/claude-math/compare/v0.3.0...v0.3.1) (2026-07-20)
 
 
