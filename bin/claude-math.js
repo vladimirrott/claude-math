@@ -39,6 +39,7 @@ const INSTALLED = join(PLUGINS_DIR, "installed_plugins.json");
 // directory drops straight in. CLAUDE_MATH_CODEX_SKILLS_DIR overrides the dir (used by tests).
 const SKILL_NAME = "math-unicode";
 const SKILL_SRC = join(PLUGIN_ROOT, "skills", SKILL_NAME);
+const CODEX_INSTALL_MARKER = ".claude-math-install.json";
 const CODEX_SKILLS_DIR =
   process.env.CLAUDE_MATH_CODEX_SKILLS_DIR || join(homedir(), ".agents", "skills");
 const CODEX_TARGET = join(CODEX_SKILLS_DIR, SKILL_NAME);
@@ -87,6 +88,37 @@ function looksLikeOurPlugin(path) {
       && existsSync(join(path, "skills", "math-unicode", "SKILL.md"));
 }
 
+function symlinkPointsAt(path, destination) {
+  try {
+    return resolve(dirname(path), readlinkSync(path)) === destination;
+  } catch {
+    return false;
+  }
+}
+
+function codexMarkerPath(path = CODEX_TARGET) {
+  return join(path, CODEX_INSTALL_MARKER);
+}
+
+function isOurCodexInstall(path = CODEX_TARGET) {
+  const stat = lstatSafe(path);
+  if (!stat?.isDirectory() || stat.isSymbolicLink()) return false;
+  try {
+    const marker = JSON.parse(readFileSync(codexMarkerPath(path), "utf8"));
+    return marker?.package === PLUGIN_NAME && marker?.skill === SKILL_NAME;
+  } catch {
+    return false;
+  }
+}
+
+function writeCodexInstallMarker() {
+  writeJsonAtomic(codexMarkerPath(), {
+    package: PLUGIN_NAME,
+    skill: SKILL_NAME,
+    version: pkg.version,
+  });
+}
+
 function chooseMode() {
   if (FORCE_COPY) return "copy";
   if (isEphemeralPath(PLUGIN_ROOT)) return "copy";
@@ -101,7 +133,7 @@ function clearTarget() {
   if (stat.isSymbolicLink()) {
     let current = "";
     try { current = readlinkSync(TARGET); } catch {}
-    if (current === PLUGIN_ROOT || FORCE) {
+    if (symlinkPointsAt(TARGET, PLUGIN_ROOT) || FORCE) {
       unlinkSync(TARGET);
       return;
     }
@@ -169,8 +201,12 @@ function removeTarget() {
   const stat = lstatSafe(TARGET);
   if (!stat) return;
   if (stat.isSymbolicLink()) {
-    unlinkSync(TARGET);
-    log(`removed symlink ${TARGET}`);
+    if (symlinkPointsAt(TARGET, PLUGIN_ROOT) || FORCE) {
+      unlinkSync(TARGET);
+      log(`removed symlink ${TARGET}`);
+    } else {
+      log(`${TARGET} exists but is not our plugin — leaving alone (use --force to remove anyway)`);
+    }
     return;
   }
   if (stat.isDirectory() && (looksLikeOurPlugin(TARGET) || FORCE)) {
@@ -200,13 +236,13 @@ function installCodex() {
   mkdirSync(CODEX_SKILLS_DIR, { recursive: true });
   const stat = lstatSafe(CODEX_TARGET);
   if (stat) {
-    const ours = existsSync(join(CODEX_TARGET, "SKILL.md"));
-    if (!ours && !FORCE) {
-      die(`${CODEX_TARGET} exists and is not a math-unicode skill. Inspect it, then re-run with --force.`);
+    if (!isOurCodexInstall() && !FORCE) {
+      die(`${CODEX_TARGET} exists but is not managed by claude-math. Inspect it, then re-run with --force to take ownership.`);
     }
     rmSync(CODEX_TARGET, { recursive: true, force: true });
   }
   cpSync(SKILL_SRC, CODEX_TARGET, { recursive: true });
+  writeCodexInstallMarker();
   log(`installed skill → ${CODEX_TARGET}`);
   log("Codex auto-detects new skills; restart Codex if it doesn't appear. Invoke with /skills or $math-unicode.");
 }
@@ -214,7 +250,7 @@ function installCodex() {
 function uninstallCodex() {
   const stat = lstatSafe(CODEX_TARGET);
   if (!stat) { log(`nothing to remove at ${CODEX_TARGET}`); return; }
-  if (existsSync(join(CODEX_TARGET, "SKILL.md")) || FORCE) {
+  if (isOurCodexInstall() || FORCE) {
     rmSync(CODEX_TARGET, { recursive: true, force: true });
     log(`removed skill ${CODEX_TARGET}`);
     return;
@@ -224,7 +260,9 @@ function uninstallCodex() {
 
 function statusCodex() {
   const present = existsSync(join(CODEX_TARGET, "SKILL.md"));
+  const owned = isOurCodexInstall();
   console.log(`codex skill:  ${present ? "✓" : "✗"} ${CODEX_TARGET}`);
+  console.log(`codex owner:  ${owned ? "✓" : "✗"} claude-math`);
   console.log(`codex skills: ${CODEX_SKILLS_DIR}`);
 }
 
@@ -297,7 +335,8 @@ Usage:
   claude-math uninstall [--force] [--codex]
       Remove the plugin and disable it. --force lets it remove a directory
       that does not look like a claude-math install. --codex removes the
-      Codex skill instead.
+      Codex skill instead; only marker-managed Codex installs are removed
+      without --force.
 
   claude-math status [--codex]
       Show install state, target kind, and which mode would be used.

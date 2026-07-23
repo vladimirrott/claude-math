@@ -10,9 +10,10 @@ Terminal coding agents do not render LaTeX. In both **Claude Code** and
 **OpenAI Codex CLI**, a formula like `$f(x) = \sum_{i=1}^n x_i$` appears as raw
 dollar signs and backslashes, exactly the noise you wanted formatting to
 remove. This project ships a single skill (`math-unicode`) that instructs the
-model to emit math as Unicode glyphs inline, which every terminal already
-renders. It installs as a Claude Code plugin and, via the identical `SKILL.md`,
-as a Codex skill (`claude-math install --codex`).
+model to emit math as Unicode glyphs inline. Unicode-capable terminals with a
+suitable font render these glyphs directly. It installs as a Claude Code plugin
+and, via the identical `SKILL.md`, as a Codex skill (`claude-math install
+--codex`).
 
 ## Before / after
 
@@ -74,6 +75,9 @@ once is the easiest path.
 /plugin marketplace add vladimirrott/claude-math
 /plugin install claude-math@vladimirrott
 ```
+
+The skill normally activates for mathematical output. To load the complete
+rule set explicitly in Claude Code, run `/math-unicode` before the request.
 
 ### Codex CLI
 
@@ -138,9 +142,10 @@ equation on demand, not in-chat rendering.
 | Sixel / kitty graphics | ✗ (not in chat) | partial | ✗ | ✗ images | separate render CLI (roadmap) |
 | Pipe through external viewer | ✗ TUI breaks | n/a | ✓ if `--print` | ✓ | shell wrapper |
 
-Unicode is the only path that survives every distribution channel a Claude
-Code session ends up in. The graphical path is roadmap-only and, even then,
-would run as a separate terminal command outside the chat.
+Unicode is the only approach that preserves text across the distribution
+channels a Claude Code session commonly uses. The graphical path is
+roadmap-only and, even then, would run as a separate terminal command outside
+the chat.
 
 ## Related issues & prior art
 
