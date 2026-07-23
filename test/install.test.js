@@ -4,12 +4,13 @@ import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, "..", "bin", "claude-math.js");
 const PLUGIN_ROOT = join(__dirname, "..");
 const PLUGIN_ID = "claude-math@local";
+const CODEX_MARKER = ".claude-math-install.json";
 
 function sandbox() {
   const dir = mkdtempSync(join(tmpdir(), "claude-math-test-"));
@@ -158,6 +159,31 @@ test("install refuses to clobber a foreign symlink without --force", () => {
   } finally { sb.cleanup(); }
 });
 
+test("install recognizes a relative symlink to this plugin as its own", () => {
+  const sb = sandbox();
+  try {
+    mkdirSync(join(sb.dir, "plugins", "local"), { recursive: true });
+    symlinkSync(relative(dirname(sb.target), PLUGIN_ROOT), sb.target, "dir");
+    assert.doesNotThrow(() => sb.run("install"));
+    sb.run("uninstall");
+    assert.equal(safeLstat(sb.target), null);
+  } finally { sb.cleanup(); }
+});
+
+test("uninstall leaves a foreign symlink without --force", () => {
+  const sb = sandbox();
+  try {
+    const decoy = mkdtempSync(join(tmpdir(), "claude-math-decoy-"));
+    try {
+      mkdirSync(join(sb.dir, "plugins", "local"), { recursive: true });
+      symlinkSync(decoy, sb.target, "dir");
+      const out = sb.run("uninstall");
+      assert.match(out, /not our plugin — leaving alone/);
+      assert.equal(safeLstat(sb.target)?.isSymbolicLink(), true);
+    } finally { rmSync(decoy, { recursive: true, force: true }); }
+  } finally { sb.cleanup(); }
+});
+
 function codexSandbox() {
   const dir = mkdtempSync(join(tmpdir(), "claude-math-codex-"));
   const skillsDir = join(dir, "skills");
@@ -181,6 +207,9 @@ test("install --codex drops the skill into the Codex skills dir", () => {
     sb.run("install", "--codex");
     assert.equal(existsSync(sb.skill), true, "SKILL.md should be installed");
     assert.match(readFileSync(sb.skill, "utf8"), /name:\s*math-unicode/);
+    const marker = JSON.parse(readFileSync(join(sb.target, CODEX_MARKER), "utf8"));
+    assert.equal(marker.package, "claude-math");
+    assert.equal(marker.skill, "math-unicode");
   } finally { sb.cleanup(); }
 });
 
@@ -198,17 +227,30 @@ test("status --codex reports install state", () => {
   try {
     assert.match(sb.run("status", "--codex"), /codex skill:.*✗/);
     sb.run("install", "--codex");
-    assert.match(sb.run("status", "--codex"), /codex skill:.*✓/);
+    const out = sb.run("status", "--codex");
+    assert.match(out, /codex skill:.*✓/);
+    assert.match(out, /codex owner:.*✓/);
   } finally { sb.cleanup(); }
 });
 
-test("install --codex refuses to clobber a foreign dir without --force", () => {
+test("install --codex refuses to clobber a foreign valid skill directory without --force", () => {
   const sb = codexSandbox();
   try {
     mkdirSync(sb.target, { recursive: true });
-    writeFileSync(join(sb.target, "OTHER.md"), "not ours");
+    writeFileSync(sb.skill, "---\nname: math-unicode\n---\n\nA different skill.");
     assert.throws(() => sb.run("install", "--codex"), /--force/);
     sb.run("install", "--codex", "--force");
+    assert.equal(existsSync(sb.skill), true);
+  } finally { sb.cleanup(); }
+});
+
+test("uninstall --codex leaves a foreign valid skill directory without --force", () => {
+  const sb = codexSandbox();
+  try {
+    mkdirSync(sb.target, { recursive: true });
+    writeFileSync(sb.skill, "---\nname: math-unicode\n---\n\nA different skill.");
+    const out = sb.run("uninstall", "--codex");
+    assert.match(out, /not our skill — leaving alone/);
     assert.equal(existsSync(sb.skill), true);
   } finally { sb.cleanup(); }
 });
