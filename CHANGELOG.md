@@ -2,6 +2,13 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.4.1](https://github.com/vladimirrott/claude-math/compare/v0.4.0...v0.4.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* harden installs and terminal math guidance ([7209eef](https://github.com/vladimirrott/claude-math/commit/7209eefc7f8a19abf15c577fe9a1e2ab31619e4a))
+
 ## [0.4.0](https://github.com/vladimirrott/claude-math/compare/v0.3.1...v0.4.0) (2026-07-22)
 
 
