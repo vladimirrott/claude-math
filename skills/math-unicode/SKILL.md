@@ -70,8 +70,27 @@ brackets       ⟨ ⟩  ⌈ ⌉  ⌊ ⌋  ‖ ‖  〈 〉
 
 ```
 superscript    ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹  ⁺ ⁻ ⁼ ⁽ ⁾  ⁱ ⁿ ᵃ ᵇ ᶜ ᵈ ᵉ ᶠ ᵍ ʰ ʲ ᵏ ˡ ᵐ ᵒ ᵖ ʳ ˢ ᵗ ᵘ ᵛ ʷ ˣ ʸ ᶻ
+sup (capital)  ᴬ ᴮ ᴰ ᴱ ᴳ ᴴ ᴵ ᴶ ᴷ ᴸ ᴹ ᴺ ᴼ ᴾ ᴿ ᵀ ᵁ ⱽ ᵂ
 subscript      ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉  ₊ ₋ ₌ ₍ ₎  ₐ ₑ ₕ ᵢ ⱼ ₖ ₗ ₘ ₙ ₒ ₚ ᵣ ₛ ₜ ᵤ ᵥ ₓ
 ```
+
+**No glyph exists for these. Do not invent or approximate one.** A whitelist on
+its own is not a membership test; these are the exact gaps that make the bare
+`^x` / `_x` fallbacks in Rules 3, 4 and 5 fire:
+
+```
+subscript letters      b c d f g q w y z    → bare underscore: x_b, x_c, x_d
+superscript capitals   S X Y Z              → bare caret: A^S, A^X, M^Y
+superscript C F Q      U+A7F2–A7F4 only     → treat as absent (most fonts show tofu)
+superscript ∞          does not exist       → never ^∞ as a glyph; use ∫[a..∞] (Rule 5)
+Greek sub/superscript  ν μ ρ θ σ ...        → bare form: I_ν, ∂_μ, x^ν (Rules 3, 4, 8)
+```
+
+Measured coverage: **17/26** lowercase subscripts and **19/26** superscript
+capitals. The `∞` gap is why big-operator bounds use a bracketed range rather
+than stacked scripts: `∫₀^∞` would render one bound as a glyph and the other as
+a caret in the same operator. When unsure, the bare `^` / `_` form is always
+acceptable; a wrong or missing glyph is not.
 
 ### Common LaTeX → Unicode
 
@@ -113,7 +132,9 @@ Good:
 ### Rule 3 — Subscripts
 
 - Single Unicode-renderable index: prefer the glyph (x₁, x₂, xᵢ, xⱼ, xₙ).
-- Single index with no subscript glyph: use a bare underscore — `I_ν`, `∂_μ`.
+- Single index with no subscript glyph: use a bare underscore — `I_ν`, `∂_μ`,
+  and `x_c` / `x_b` / `x_d`, which have no subscript form at all. Check the
+  gap list under *Sub/superscript glyph blocks* before reaching for a glyph.
 - Multi-character or grouped subscript: use `_{...}` syntax — the underscore
   reads unambiguously as a subscript and stays more legible than bracket-style
   indexing:
@@ -125,7 +146,9 @@ Good:
 
 - Simple / Unicode-mappable exponent: prefer the glyph — x², x³, xⁿ, eˣ, A⁻¹,
   and the transpose xᵀ / vᵀ.
-- Single exponent with no glyph: use a bare caret — `x^ν`, `(z/2)^a`.
+- Single exponent with no glyph: use a bare caret — `x^ν`, `(z/2)^a`, and
+  `A^S` / `A^X` / `A^Y` / `A^Z`, which have no capital superscript form.
+  `Aᵀ` is fine; see the gap list under *Sub/superscript glyph blocks*.
 - Multi-character or expression exponent: use **caret + parentheses**, never
   `^{...}` — `x^(k+1)`, `x^(i)`, `e^(iπ)`. A bare `x^{T}` / `x^{(i)}` leaks
   LaTeX source; write `xᵀ` (single glyph) or `x^(i)` (parenthesized).

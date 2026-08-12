@@ -57,7 +57,7 @@ The plugin is a single skill file plus a small installer CLI:
 ## What it does and does not do
 
 - It **does** make Claude write math as Unicode inline, which renders in the chat today.
-- It **does not** render equations as images inside the Claude Code chat. A plugin cannot: the terminal UI repaints its own screen buffer and overwrites any injected graphics sequences. Rendered sixel or kitty output is on the roadmap as a separate, standalone command that runs in your own terminal, outside the chat.
+- It **does not** render equations as images inside the Claude Code chat. A plugin cannot: the terminal UI repaints its own screen buffer and overwrites any injected graphics sequences. Graphics belongs in the host, and that work is underway upstream (openai/codex#18906); this skill is the stopgap until it lands where you work.
 
 ## Design note: copy-safe glyphs
 
