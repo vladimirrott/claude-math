@@ -2,6 +2,13 @@
 
 All notable changes to `claude-math` documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.5.0](https://github.com/vladimirrott/claude-math/compare/v0.4.1...v0.5.0) (2026-08-12)
+
+
+### Features
+
+* **skill:** state the glyphs that do not exist, not just the ones that do ([6d408fe](https://github.com/vladimirrott/claude-math/commit/6d408fe156d926ca7a30ee17f0c94e744d77a4a7))
+
 ## [0.4.1](https://github.com/vladimirrott/claude-math/compare/v0.4.0...v0.4.1) (2026-07-23)
 
 
