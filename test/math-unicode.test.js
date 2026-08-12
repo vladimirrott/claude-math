@@ -46,3 +46,44 @@ test("public descriptions do not promise unsupported terminal coverage", () => {
   assert.match(publicText, /Unicode-capable terminal/i);
   assert.match(publicText, /`\/math-unicode`/);
 });
+
+test("glyph blocks list the capital superscripts the rules actually use", () => {
+  // Rule 4 and the golden corpus emit xᵀ, but the reference block listed no
+  // capitals at all, so the model had to guess whether A^S had a glyph.
+  assert.match(skill, /^sup \(capital\) .*ᴬ ᴮ ᴰ ᴱ ᴳ ᴴ ᴵ ᴶ ᴷ ᴸ ᴹ ᴺ ᴼ ᴾ ᴿ ᵀ ᵁ ⱽ ᵂ/m);
+});
+
+test("skill names the glyphs that do not exist, not only the ones that do", () => {
+  // A whitelist alone is not a membership test: the fallbacks in Rules 3-5
+  // only fire if the model knows which characters have no form.
+  assert.match(skill, /No glyph exists/);
+  assert.match(skill, /subscript letters\s+b c d f g q w y z/);
+  assert.match(skill, /superscript capitals\s+S X Y Z/);
+  assert.match(skill, /superscript ∞\s+does not exist/);
+  assert.ok(
+    skill.includes("17/26") && skill.includes("19/26"),
+    "state measured coverage so the gap is checkable, not folklore",
+  );
+});
+
+test("no public text promises a graphics-rendering roadmap", () => {
+  // Native TUI renderers are landing upstream (codex#18906, claude-code#44479);
+  // a separate render CLI is not a race this skill can win.
+  const publicText = [
+    readFileSync(join(root, "README.md"), "utf8"),
+    readFileSync(join(root, "docs", "index.md"), "utf8"),
+    readFileSync(join(root, "package.json"), "utf8"),
+    readFileSync(join(root, ".claude-plugin", "plugin.json"), "utf8"),
+    readFileSync(join(root, ".codex-plugin", "plugin.json"), "utf8"),
+  ].join("\n");
+
+  assert.doesNotMatch(publicText, /on the roadmap/i);
+  assert.doesNotMatch(publicText, /roadmap \(not built yet\)/i);
+});
+
+test("related issues point at the live upstream threads", () => {
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+
+  assert.match(readme, /openai\/codex\/issues\/18906/);
+  assert.doesNotMatch(readme, /openai\/codex\/issues\/15865/, "closed as a duplicate");
+});

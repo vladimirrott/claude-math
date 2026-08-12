@@ -128,29 +128,37 @@ update and overwrites any graphics escape sequences a plugin emits, and its
 line accounting does not know an image's height. So in-chat output stays
 Unicode, which is the point of this skill.
 
-Roadmap (not built yet): a standalone `claude-math render "<latex>"` command
-that converts LaTeX to an image and prints it via the terminal's graphics
-protocol in your own graphics-capable terminal (kitty, wezterm, ghostty,
-foot), outside the Claude Code TUI. It would be a convenience for viewing an
-equation on demand, not in-chat rendering.
+Graphics belongs in the host, not in a plugin, and that work is now underway
+upstream: [openai/codex#18906](https://github.com/openai/codex/issues/18906)
+has two working fork branches rendering LaTeX through the Kitty graphics
+protocol (one via typst + mitex, one via `latex` + `dvipng`), and the emerging
+consensus there is Unicode-first as the first milestone with a graphics backend
+second. A renderer inside the host can do something this skill structurally
+cannot: convert only at display time and keep the exact LaTeX in the
+transcript, so nothing is lost on resume, export or copy.
+
+This skill is therefore the stopgap for terminals and hosts that do not render
+math yet. When native rendering lands where you work, prefer it.
 
 ## Why Unicode by default?
 
 | Path | Works in plain terminal | SSH / tmux | CI logs | Copy-paste | Install cost |
 |---|---|---|---|---|---|
 | Unicode (this skill) | ✓ | ✓ | ✓ | ✓ | 1 file |
-| Sixel / kitty graphics | ✗ (not in chat) | partial | ✗ | ✗ images | separate render CLI (roadmap) |
+| Sixel / kitty graphics | ✗ (not in chat) | partial | ✗ | ✗ images | native host support |
 | Pipe through external viewer | ✗ TUI breaks | n/a | ✓ if `--print` | ✓ | shell wrapper |
 
 Unicode is the only approach that preserves text across the distribution
-channels a Claude Code session commonly uses. The graphical path is
-roadmap-only and, even then, would run as a separate terminal command outside
-the chat.
+channels a Claude Code session commonly uses, and the only one whose output
+stays selectable and greppable: a graphics placement is an image, so you cannot
+search or copy the equation out of it. That is why a Unicode path stays useful
+even after hosts gain a graphics backend.
 
 ## Related issues & prior art
 
 - [anthropics/claude-code#44479](https://github.com/anthropics/claude-code/issues/44479): native LaTeX in terminal output (open)
-- [openai/codex#15865](https://github.com/openai/codex/issues/15865): LaTeX in Codex CLI output (claude-math covers this via `claude-math install --codex`)
+- [anthropics/claude-code#80702](https://github.com/anthropics/claude-code/issues/80702): Markdown escaping corrupts LaTeX source before it can be rendered (open)
+- [openai/codex#18906](https://github.com/openai/codex/issues/18906): Markdown math rendering in the Codex TUI (open; claude-math covers the gap today via `claude-math install --codex`)
 - [warpdotdev/warp#9677](https://github.com/warpdotdev/warp/issues/9677): same gap on Warp
 - [`markless`](https://github.com/jvanderberg/markless): terminal Markdown viewer with Typst math and kitty/sixel images
 - [`mdviewer`](https://github.com/aquele-dinho/mdviewer), [`glowm`](https://github.com/atani/glowm), [`mdterm`](https://www.toolhunter.cc/tools/mdterm): adjacent viewers
