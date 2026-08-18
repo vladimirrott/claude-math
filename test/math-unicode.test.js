@@ -7,9 +7,13 @@ import { dirname, join } from "node:path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const skill = readFileSync(join(root, "skills", "math-unicode", "SKILL.md"), "utf8");
+const extended = readFileSync(
+  join(root, "skills", "math-unicode", "references", "extended-glyphs.md"),
+  "utf8",
+);
 
 test("quick reference uses a real sum operator and thin-space grouping", () => {
-  assert.match(skill, /^description: This skill must be used whenever a response needs mathematical notation/m);
+  assert.match(skill, /^description: Use when a response needs mathematical notation/m);
   assert.match(skill, /^disable-model-invocation: false$/m);
   assert.match(skill, /‖x‖₂ = √\(∑\[i=1\.\.n\] xᵢ²\)/);
   assert.doesNotMatch(skill, /√\(Σᵢ xᵢ²\)/);
@@ -23,7 +27,7 @@ test("golden corpus preserves difficult terminal-native formulas", () => {
     "T_N(b,z) = ∑[m₁+...+mₙ=N] ((b₁)_{m₁} ··· (bₙ)_{mₙ}) / (m₁! ··· mₙ!) · z₁^(m₁) ··· zₙ^(mₙ)",
     "θ(z | Ω) = ∑[n ∈ ℤ^g] exp(2π i(½ n · Ω · n + n · z))",
     "R^ρ_{σμν} = ∂_μ Γ^ρ_{νσ} − ∂_ν Γ^ρ_{μσ} + Γ^ρ_{μλ} Γ^λ_{νσ} − Γ^ρ_{νλ} Γ^λ_{μσ}",
-    "f^(n)(z₀) = n! / (2π i) ∮[C] f(z) / (z−z₀)^(n+1) dz",
+    "f^(n)(z₀) = n! / (2π i) ∫[C] f(z) / (z−z₀)^(n+1) dz",
     "∂u/∂t + (u · ∇)u = −∇p + νΔu + f,  ∇·u = 0",
     "p(x) = exp(−½ (x−μ)ᵀΣ⁻¹(x−μ)) / √((2π)ᵈ det Σ)",
     "F(ω) = ∫[−∞..∞] f(t)e^(−iωt) dt",
@@ -56,14 +60,48 @@ test("glyph blocks list the capital superscripts the rules actually use", () => 
 test("skill names the glyphs that do not exist, not only the ones that do", () => {
   // A whitelist alone is not a membership test: the fallbacks in Rules 3-5
   // only fire if the model knows which characters have no form.
-  assert.match(skill, /No glyph exists/);
+  assert.match(skill, /Do not invent or approximate a missing glyph/);
+  assert.match(skill, /No Unicode code point exists at all/);
   assert.match(skill, /subscript letters\s+b c d f g q w y z/);
-  assert.match(skill, /superscript capitals\s+S X Y Z/);
-  assert.match(skill, /superscript ∞\s+does not exist/);
+  assert.match(skill, /subscript capitals\s+all 26/);
+  assert.match(skill, /superscript capitals\s+X Y Z/);
+  assert.match(skill, /superscript ∞\s+none/);
   assert.ok(
-    skill.includes("17/26") && skill.includes("19/26"),
+    skill.includes("17/26") && skill.includes("0/26") && skill.includes("19/26"),
     "state measured coverage so the gap is checkable, not folklore",
   );
+});
+
+test("a missing font is not reported as a missing code point", () => {
+  // The old gap list collapsed two different causes into "no glyph exists",
+  // which made three of its own examples wrong.
+  assert.match(skill, /A code point exists, but no monospace font in the measured set ships it/);
+  // U+A7F1 shipped in Unicode 17.0, so superscript S is a font gap now.
+  assert.match(skill, /superscript S\s+U\+A7F1, Unicode 17\.0/);
+  assert.doesNotMatch(skill, /superscript capitals\s+S X Y Z/, "S has had a code point since Unicode 17.0");
+  // Superscript theta and subscript rho both exist; only one of them renders.
+  assert.match(skill, /`ᶿ` \(superscript θ, U\+1DBF\)/);
+  assert.match(skill, /`ρ` does\s*\n?have a subscript, `ᵨ` U\+1D68/);
+  assert.match(skill, /^sup \(Greek\) {4}ᶿ/m, "theta belongs in the portable block it renders in");
+});
+
+test("activation is scoped to surfaces that cannot render LaTeX", () => {
+  // Issue #18: the description is the only text a host matches against, and it
+  // used to trigger on content alone, including on hosts that render math.
+  assert.match(skill, /^description: .*terminal or TUI that cannot render LaTeX/m);
+  assert.match(skill, /^description: .*Do not use when the host renders math natively/m);
+  assert.match(skill, /Surfaces that render math natively \(do not apply the skill\)/);
+  assert.match(skill, /No host exposes a per-surface predicate to a skill today/);
+});
+
+test("the extended glyph set is opt-in and leaves the big-operator rule alone", () => {
+  // Issue #19: wider coverage for single-character scripts only.
+  assert.match(skill, /references\/extended-glyphs\.md/);
+  assert.match(extended, /^# Extended glyph coverage$/m);
+  assert.match(extended, /Use extended glyph coverage from math-unicode/);
+  assert.match(extended, /Rule 5 is unchanged/);
+  assert.match(extended, /Rule 13 is unchanged/);
+  assert.doesNotMatch(extended, /∫₀\^∞ is fine|stacked bounds are fine/);
 });
 
 test("no public text promises a graphics-rendering roadmap", () => {
