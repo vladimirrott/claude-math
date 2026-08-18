@@ -21,7 +21,7 @@ const coverage = (g) => fixture.coverage[key(g)];
 // Rows look like: | ᵨ | U+1D68 | 2/12 | `I_ρ` |
 const COUNT_ROW = /^\| (.) \| (U\+[0-9A-F]{4,5}) \| (\d+)\/(\d+) \|/gmu;
 // Rows look like: | number sets | ℕ ℤ ℚ ℝ ℂ ℙ ℍ | 3/12 |
-const TIER_ROW = /^\| ([a-z][^|]*?) \| ([^|]+?) \| (\d+)(?:-(\d+))?\/(\d+) \|$/gm;
+const TIER_ROW = /^\| ([^|]+?) \| ([^|]+?) \| (\d+)(?:-(\d+))?\/(\d+) \|$/gm;
 
 test("the measured font set is the one the skill claims", () => {
   assert.equal(N, 12);
@@ -80,6 +80,34 @@ test("the coverage tier table is derived from the fixture, not typed", () => {
     assert.equal(hi === undefined ? Math.min(...counts) : Number(hi), Math.max(...counts),
       `tier row "${label}": printed high does not match the fixture`);
   }
+});
+
+test("nothing on the avoid list is still recommended elsewhere", () => {
+  // Coverage >= 1 does not catch a glyph like double-struck F at 1/12: it has a
+  // font, it just has a better replacement. The avoid list is the decision, so
+  // assert it holds across the rest of the file.
+  const { recommended } = splitSkill(skill);
+  const listed = [...skill.matchAll(COUNT_ROW)].map(([, glyph]) => glyph);
+  const leaked = listed.filter((g) => recommended.includes(g));
+  assert.deepEqual(leaked, [], `on the avoid list yet still recommended: ${leaked.join(" ")}`);
+});
+
+test("the tier table accounts for every script glyph the cheatsheet offers", () => {
+  // Without this, a weak glyph can be quietly dropped from a tier row so the
+  // printed range looks tidier than the palette actually is.
+  const blocks = skill.match(/^(?:superscript|sup \(capital\)|sup \(Greek\)|subscript) {2,}.*$/gm);
+  assert.ok(blocks && blocks.length === 4, `expected 4 script rows, found ${blocks?.length}`);
+  const offered = new Set(nonAscii(blocks.join(" ")));
+
+  const section = skill.split("## Font coverage")[1].split("### Common LaTeX")[0];
+  const tabled = new Set(nonAscii([...section.matchAll(TIER_ROW)].map(([, , g]) => g).join(" ")));
+
+  const missing = [...offered].filter((g) => !tabled.has(g));
+  assert.deepEqual(
+    missing,
+    [],
+    `offered in the cheatsheet but absent from the coverage table: ${missing.join(" ")}`,
+  );
 });
 
 test("the extended reference publishes its own measured counts", () => {

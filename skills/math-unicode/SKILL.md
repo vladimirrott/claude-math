@@ -150,6 +150,10 @@ suite asserts every number below against the result.
 | arrows, single | → ← ↔ ↑ ↓ | 9/12 |
 | set and logic symbols | ∈ ∉ ∪ ∩ ⊂ ⊆ ∧ ∨ ∀ ∃ ∅ ∇ | 4-8/12 |
 | superscript letters, lowercase | ᵃ ᵇ ᶜ ᵈ ᵉ ᶠ ᵍ ʰ ʲ ᵏ ˡ ᵐ ᵒ ᵖ ʳ ˢ ᵗ ᵘ ᵛ ʷ ˣ ʸ ᶻ | 4-5/12 |
+| superscript i and n | ⁱ ⁿ | 2-7/12 |
+| superscript theta | ᶿ | 4/12 |
+| superscript signs and parens | ⁺ ⁻ ⁼ ⁽ ⁾ | 3-4/12 |
+| subscript signs and parens | ₊ ₋ ₌ ₍ ₎ | 3-4/12 |
 | superscript letters, capital | ᴬ ᴮ ᴰ ᴱ ᴳ ᴴ ᴵ ᴶ ᴷ ᴸ ᴹ ᴺ ᴼ ᴾ ᴿ ᵀ ᵁ ⱽ ᵂ | 1-3/12 |
 | subscript letters, wider half | ₐ ₑ ᵢ ₒ ᵣ ᵤ ᵥ ₓ | 3/12 |
 | subscript letters, thin half | ₕ ₖ ₗ ₘ ₙ ₚ ₛ ₜ ⱼ | 1/12 |
